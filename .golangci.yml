@@ -1,0 +1,36 @@
+# golangci-lint configuration (v2). The default linter set plus complexity
+# checks; the bar is 0 issues.
+#
+# Targeted exclusions, each with a reason:
+#
+# 1. goconst is off. This package is mostly data tables of command and
+#    subcommand names ("delete", "init", "env"…) and a named constant per
+#    verb would make them harder to read and audit, not easier — and reading
+#    them is the point: the tables are the security surface.
+#
+# 2. staticcheck SA5011 ("possible nil pointer dereference") produces
+#    nondeterministic false positives in test files around the standard
+#    table-test guard (`if got == nil { t.Fatal(...) }; use(got)`): t.Fatal
+#    ends the goroutine, so the deref is unreachable, but the nilness facts
+#    propagate whole-program and which sites get flagged shifts as unrelated
+#    code changes. It stays enabled for non-test code.
+version: "2"
+linters:
+  enable:
+    - gocyclo
+    - gocognit
+  settings:
+    gocyclo:
+      min-complexity: 16
+    gocognit:
+      min-complexity: 21
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - staticcheck
+        text: SA5011
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - gocognit
